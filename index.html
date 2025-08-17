@@ -1,15 +1,17 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>ST Shop POS — Secure</title>
+
+  <!-- Font + CSS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="app">
+<div id="app" data-theme="light">
   <header class="topbar">
     <h1>ST Shop POS</h1>
     <div class="status">
@@ -24,44 +26,60 @@
     <section id="loginView" class="card">
       <h2>Login</h2>
       <div class="grid">
-        <label>Phone<input id="loginPhone" placeholder="01XXXXXXXXX" value="Admin"></label>
-        <label>PIN<input id="loginPin" placeholder="4-6 digits" inputmode="numeric" value="1234"></label>
+        <label>Phone
+          <input id="loginPhone" placeholder="01XXXXXXXXX" value="Admin">
+        </label>
+        <label>PIN
+          <input id="loginPin" placeholder="4-6 digits" inputmode="numeric" value="1234">
+        </label>
       </div>
       <button id="btnLoginLocal" class="btn primary">Login (Local)</button>
       <p class="muted">Admin creates new users. Cashiers can’t self-register.</p>
       <div id="newDeviceBox" class="note hide"></div>
     </section>
 
-    <!-- APPROVAL -->
+    <!-- DEVICE APPROVAL -->
     <section id="approvalView" class="card hide">
       <h2>Device Approval Needed</h2>
       <p>This device is not approved for your account.</p>
       <div class="grid">
-        <label>Request Code<input id="reqCode" readonly></label>
+        <label>Request Code
+          <input id="reqCode" readonly>
+        </label>
       </div>
-      <button id="btnSendReq" class="btn">Send Approval Request</button>
+      <div class="row">
+        <button id="btnSendReq" class="btn">Send Approval Request</button>
+        <button id="btnBackLogin" class="btn">Back to Login</button>
+      </div>
     </section>
 
     <!-- CASHIER -->
     <section id="cashierView" class="card hide">
       <h2>Cashier</h2>
       <p>Welcome, <b id="who"></b></p>
+
       <div class="grid">
-        <label>Product ID<input id="pId"></label>
-        <label>Name<input id="pName"></label>
-        <label>Price<input id="pPrice" inputmode="decimal"></label>
-        <label>Stock<input id="pStock" inputmode="numeric"></label>
-        <label>Barcode<input id="pCode"></label>
+        <label>Product ID <input id="pId" placeholder="101"></label>
+        <label>Name <input id="pName" placeholder="Milk 1L"></label>
+        <label>Price <input id="pPrice" inputmode="decimal" placeholder="120.00"></label>
+        <label>Stock <input id="pStock" inputmode="numeric" placeholder="10"></label>
+        <label>Barcode
+          <input id="pCode" placeholder="Scan or type">
+        </label>
       </div>
+
       <div class="row">
         <button id="btnAdd" class="btn primary">Add/Update</button>
         <button id="btnSync" class="btn">Sync Now</button>
         <button id="btnLogout" class="btn danger">Logout</button>
       </div>
+
       <h3>Products</h3>
-      <table class="tbl" id="tblProducts">
-        <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Barcode</th></tr></thead>
-        <tbody></tbody>
+      <table class="tbl">
+        <thead>
+          <tr><th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Barcode</th></tr>
+        </thead>
+        <tbody id="tblProducts"></tbody>
       </table>
     </section>
 
@@ -69,8 +87,8 @@
     <section id="adminView" class="card hide">
       <h2>Admin</h2>
       <div class="grid">
-        <label>New User Phone<input id="nPhone" placeholder="01XXXXXXXXX"></label>
-        <label>PIN<input id="nPin" inputmode="numeric" placeholder="4-6 digits"></label>
+        <label>New User Phone <input id="nPhone" placeholder="01XXXXXXXXX"></label>
+        <label>PIN <input id="nPin" inputmode="numeric" placeholder="4-6 digits"></label>
         <label>Role
           <select id="nRole">
             <option value="cashier">Cashier</option>
@@ -78,20 +96,41 @@
           </select>
         </label>
       </div>
-      <button id="btnCreateUser" class="btn primary">Create / Update User</button>
+      <div class="row">
+        <button id="btnCreateUser" class="btn primary">Create / Update User</button>
+        <button id="btnSyncAdmin" class="btn">Sync Now</button>
+        <button id="btnLogoutAdmin" class="btn danger">Logout</button>
+      </div>
 
       <h3>Pending Device Approvals</h3>
-      <table class="tbl" id="tblPending">
-        <thead><tr><th>Phone</th><th>Device</th><th>Code</th><th></th></tr></thead>
-        <tbody></tbody>
+      <table class="tbl">
+        <thead>
+          <tr><th>Phone</th><th>Device</th><th>Code</th><th></th></tr>
+        </thead>
+        <tbody id="tblPending"></tbody>
+      </table>
+
+      <h3>Manage Devices</h3>
+      <div class="grid">
+        <label>Phone <input id="mPhone" placeholder="01XXXXXXXXX"></label>
+      </div>
+      <div class="row">
+        <button id="btnLoadDevices" class="btn">Load Devices</button>
+        <button id="btnRevokeAll" class="btn danger">Revoke All</button>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Device</th><th>Action</th></tr></thead>
+        <tbody id="deviceList"></tbody>
       </table>
     </section>
   </main>
 </div>
 
+<!-- Google Identity + API -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js"></script>
 <script>
+  // <<<<< PUT YOUR CLIENT ID HERE >>>>>
   window.CLIENT_ID = "451324184751-2ld6pigoeplafi0ckmluivtn9aqsoua1.apps.googleusercontent.com";
 </script>
 <script src="script.js" defer></script>
